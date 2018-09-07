@@ -9,8 +9,6 @@ import time
 # Variables
 s3_bucket = "akloya-tests"
 
-
-
 my_date = time.strftime("%Y%m%d")
 r53_client = boto3.client('route53')
 s3 = boto3.resource('s3')
