@@ -1,0 +1,51 @@
+
+# Author : Ajaya Kumar Loya
+# Description : check if the Golden Instance is Running, if not start it and then schedule the inspector run
+
+import boto3
+import json
+import time
+
+# ASSIGN VARIABLES APPLICALBLE IN YOUR USECASE
+instance_id = "xxxxx"
+assessmentTemplateArn="xxxxx"
+
+
+client = boto3.client('ec2')
+my_date = time.strftime("%Y-%m-%d")
+
+# FUNCTION: START INSTANCE
+def start_instance(instance_id):
+    print("starting instance "+instance_id)
+    ec2 = boto3.resource('ec2', region_name='us-west-2')
+    instance=ec2.Instance(id=instance_id)
+    instance.start()
+    instance.wait_until_running()
+
+# FUNCTION: START INSPECTOR RUN
+def start_scan():
+    print("STARTING SCAN")
+    name="Invoked By Automation on "+my_date
+    client = boto3.client('inspector')
+    response = client.start_assessment_run(
+        assessmentTemplateArn=assessmentTemplateArn,
+        assessmentRunName=name
+    )
+    print(response)
+
+
+# Get the Current status of the Instance
+response = client.describe_instance_status(
+    InstanceIds = [ instance_id ],
+    IncludeAllInstances=True
+)
+print(response)
+
+current_status=response['InstanceStatuses'][0]['InstanceState']['Name']
+print(current_status)
+
+if (current_status == "running"):
+    start_scan()
+else:
+    start_instance(instance_id)
+    start_scan()
