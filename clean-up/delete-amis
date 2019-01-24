@@ -1,0 +1,28 @@
+import boto3
+
+imageid = 'ami-xxxxxxx'
+
+ec2 = boto3.client('ec2')
+
+response = ec2.describe_images(ImageIds=[imageid])
+# print(response)
+def deregister_image(imageid):
+    response = ec2.deregister_image(
+        ImageId=imageid
+    )
+    return response
+
+
+def delete_snapshot(snapshotid):
+    response = ec2.delete_snapshot(
+        SnapshotId=snapshotid
+    )
+    return response
+
+
+for image in response['Images']:
+    # deregister image
+    print(deregister_image(imageid))
+    for snapshot in image['BlockDeviceMappings']:
+        # make sure all the snapshots associated to the ami are deleted
+        print(delete_snapshot(snapshot['Ebs']['SnapshotId']))
